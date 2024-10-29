@@ -1,4 +1,4 @@
-Open Pieces
+open Pieces
 
 (* Define the type for a square: either contains a piece or is empty *)
 type square = (piece option)

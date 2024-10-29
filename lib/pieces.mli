@@ -1,22 +1,11 @@
 (** Represents the type of a chess piece. *)
-type piece_type = 
-  | King 
-  | Queen 
-  | Rook 
-  | Bishop 
-  | Knight 
-  | Pawn
+type piece_type
 
 (** Represents the color of a piece, either White or Black. *)
-type color = 
-  | White 
-  | Black
+type color 
 
 (** Represents a chess piece with a type and color. *)
-type piece = {
-  piece_type : piece_type;
-  color : color;
-}
+type piece
 
 (** Returns the legal moves for a given piece on the chessboard.
     [piece] is the chess piece.
