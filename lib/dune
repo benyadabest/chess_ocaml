@@ -1,2 +1,3 @@
 (library
- (name chess))
+ (name chess)
+ (modules board pieces game ui))
