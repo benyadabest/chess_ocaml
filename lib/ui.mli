@@ -1,5 +1,1 @@
-(* Display the chessboard on the terminal *)
-val display_board : Board.board -> unit
-
-(* Main game loop to handle user moves and game state *)
-val game_loop : Board.board -> unit
+(** Will add code here when we decide how we are gonna represent the UI. *)

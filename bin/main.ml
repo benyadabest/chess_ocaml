@@ -1,14 +1,20 @@
-open Board
-open Ui
+open Chess.Game
+
+let game = init_game ()
+let () = print_endline "Initial Game:"
+let () = print_board game
+let () = print_endline "After White Pawn Move:"
 
 let () =
-  let board = init_board () in
+  try
+    let game = move game (1, 4) (3, 4) in
+    print_board game
+  with Failure msg -> print_endline msg
 
-  (* Predefine a list of moves *)
-  let moves = [
-    "e2 e4";  (* White moves pawn from e2 to e4 *)
-    "e7 e5";  (* Black moves pawn from e7 to e5 *)
-  ] in
+let () = print_endline "After Black Pawn Move:"
 
-  (* Simulate the moves *)
-  game_loop board moves
+let () =
+  try
+    let game = move game (6, 4) (4, 4) in
+    print_board game
+  with Failure msg -> print_endline msg
