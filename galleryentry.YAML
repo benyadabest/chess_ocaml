@@ -1,0 +1,24 @@
+---
+# Members of your group.
+group:
+  - name: benjamin shvartsman
+    netid: bs828
+  - name: Aneesh Naresh
+    netid: an524
+  - name: Dylan Dehnert
+    netid: dmd294
+# Your PM.
+pm:
+  name: Arnav Muthiayen
+  netid: am2589
+# Set to false if you don't want your gallery entry to be public.
+publish: false
+# Pithy title
+title: "Standard Chess"
+# OK if this is a Cornell Github link, but public gallery viewers won't be able to see it.
+git-repo: "https://github.com/benyadabest/3110FinalProject"
+# Replace the URL with your own demo video.
+demo-video-url: ""
+# Write a short, attention-grabbing description of your project.
+desc: >
+  Our vision for the system we are building is to implement chess using OCaml, and based on our progress in our initial implementation, expand to either include reinforcement learning or crazyhouse chess!!!
