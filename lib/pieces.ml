@@ -49,6 +49,7 @@ let get_color p =
   | White -> "White"
   | Black -> "Black"
 
+(** 1 = Pawn, 2 = Knight, 3 = Bishop, 4 = Rook, 5 = Queen, 6 = King *)
 let piece_to_int (piece : piece option) : int =
   match piece with
   | Some { piece_type = Pawn; color = White } -> 1
