@@ -1,4 +1,4 @@
-(* Defines types *)
+(** The type of a piece .*)
 type piece_type =
   | King
   | Queen
@@ -7,16 +7,18 @@ type piece_type =
   | Knight
   | Pawn
 
+(* The color of a piece.*)
 type color =
   | White
   | Black
 
+(* A piece has both a type and a color.*)
 type piece = {
   piece_type : piece_type;
   color : color;
 }
 
-let create_piece p c =
+let create_piece (p : string) (c : string) =
   let p_type =
     match p with
     | "King" -> King
@@ -48,6 +50,13 @@ let get_color p =
   match p.color with
   | White -> "White"
   | Black -> "Black"
+
+let valid_pawn_move (p : piece) (pos : int * int) = failwith "TODO"
+let valid_rook_move (p : piece) (pos : int * int) = failwith "TODO"
+let valid_knight_move (p : piece) (pos : int * int) = failwith "TODO"
+let valid_bishop_move (p : piece) (pos : int * int) = failwith "TODO"
+let valid_queen_move (p : piece) (pos : int * int) = failwith "TODO"
+let valid_king_move (p : piece) (pos : int * int) = failwith "TODO"
 
 (** 1 = Pawn, 2 = Knight, 3 = Bishop, 4 = Rook, 5 = Queen, 6 = King *)
 let piece_to_int (piece : piece option) : int =
