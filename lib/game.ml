@@ -6,6 +6,7 @@ type game_state = {
   is_whites_move : bool;
   in_check : bool;
   game_over : bool;
+  error_message : string option;
 }
 
 let init_game () : game_state =
@@ -14,38 +15,51 @@ let init_game () : game_state =
     is_whites_move = true;
     in_check = false;
     game_over = false;
+    error_message = None;
   }
 
+let get_board game_state = game_state.board
 let game_over game_state = game_state.game_over
 let is_whites_move game_state = game_state.is_whites_move
 
 let current_player_color game_state =
   if game_state.is_whites_move then "White" else "Black"
 
-let print_board (game_state : game_state) : unit = print_board game_state.board
+let print_board (game_board : board) : unit =
+  print_endline "";
+  print_endline "";
+  Board.print_board game_board;
+  print_endline ""
 
 let update_game_status (gs : game_state) : game_state =
   let color = current_player_color gs in
-  let in_check = is_in_check gs.board color in
-  let game_over = is_checkmate gs.board color || is_stalemate gs.board color in
+  let in_check = is_check gs.board color in
+  let game_over = is_checkmate gs.board color in
   { gs with in_check; game_over }
+
+let set_error_message (gs : game_state) (msg : string) : game_state =
+  { gs with error_message = Some msg }
+
+let clear_error_message (gs : game_state) : game_state =
+  { gs with error_message = None }
+
+let get_error_message (gs : game_state) : string option = gs.error_message
 
 let move (game_state : game_state) (start_row, start_col) (end_row, end_col) :
     game_state =
-  let piece_opt = get_piece_at game_state.board (start_row, start_col) in
-  match piece_opt with
-  | None -> failwith "No piece at that square."
+  match get_piece_at game_state.board (start_row, start_col) with
+  | None -> failwith "Internal error: No piece at that square."
   | Some piece ->
       let piece_color = get_color piece in
       if
         (piece_color = "White" && not (is_whites_move game_state))
         || (piece_color = "Black" && is_whites_move game_state)
-      then failwith "It's not your turn to move."
+      then failwith "Internal error: Move called on wrong player's turn."
       else if
         not
           (is_valid_move game_state.board (start_row, start_col)
              (end_row, end_col))
-      then failwith "Invalid move for that piece."
+      then failwith "Internal error: Invalid move checked too late."
       else
         let new_board =
           move_piece game_state.board (start_row, start_col) (end_row, end_col)
