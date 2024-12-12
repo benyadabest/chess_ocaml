@@ -51,26 +51,166 @@ let get_color p =
   | White -> "White"
   | Black -> "Black"
 
-let valid_pawn_move (p : piece) (pos : int * int) = failwith "TODO"
-let valid_rook_move (p : piece) (pos : int * int) = failwith "TODO"
-let valid_knight_move (p : piece) (pos : int * int) = failwith "TODO"
-let valid_bishop_move (p : piece) (pos : int * int) = failwith "TODO"
-let valid_queen_move (p : piece) (pos : int * int) = failwith "TODO"
-let valid_king_move (p : piece) (pos : int * int) = failwith "TODO"
+let valid_piece_pos (pos : int * int) =
+  match pos with
+  | row, col ->
+      if row >= 0 && row <= 7 && col >= 0 && col <= 7 then true else false
 
-(** 1 = Pawn, 2 = Knight, 3 = Bishop, 4 = Rook, 5 = Queen, 6 = King *)
-let piece_to_int (piece : piece option) : int =
+let valid_pawn_move (p : piece) (pos : int * int) =
+  if not (valid_piece_pos pos) then failwith "Invalid piece position."
+  else
+    match pos with
+    | row, col -> (
+        let case1 = row < 7 && col > 0 && col < 7 in
+        let case2 = row < 7 && col = 0 in
+        let case3 = row < 7 && col = 7 in
+        match p.color with
+        | White ->
+            if case1 then
+              List.filter valid_piece_pos
+                [
+                  (row + 1, col);
+                  (row + 1, col + 1);
+                  (row + 1, col - 1);
+                  (row + 2, col);
+                ]
+            else if case2 then
+              List.filter valid_piece_pos
+                [ (row + 1, col); (row + 1, col + 1); (row + 2, col) ]
+            else if case3 then
+              List.filter valid_piece_pos
+                [ (row + 1, col); (row + 1, col - 1); (row + 2, col) ]
+            else []
+        | Black ->
+            if case1 then
+              List.filter valid_piece_pos
+                [
+                  (row - 1, col);
+                  (row - 1, col + 1);
+                  (row - 1, col - 1);
+                  (row - 2, col);
+                ]
+            else if case2 then
+              List.filter valid_piece_pos
+                [ (row - 1, col); (row - 1, col + 1); (row - 2, col) ]
+            else if case3 then
+              List.filter valid_piece_pos
+                [ (row - 1, col); (row - 1, col - 1); (row - 2, col) ]
+            else [])
+
+let vertical_horizontal_moves_aux (pos : int * int) : (int * int) list =
+  match pos with
+  | row, col ->
+      let vertical_moves_down = List.init row (fun i -> (row - i - 1, col)) in
+      let vertical_moves_up =
+        List.init (7 - row) (fun i -> (row + i + 1, col))
+      in
+      let horizontal_moves_left = List.init col (fun i -> (row, col - i - 1)) in
+      let horizontal_moves_right =
+        List.init (7 - col) (fun i -> (row, col + i + 1))
+      in
+      vertical_moves_down @ vertical_moves_up @ horizontal_moves_left
+      @ horizontal_moves_right
+
+let valid_rook_move (pos : int * int) =
+  if not (valid_piece_pos pos) then failwith "Invalid piece position."
+  else
+    match pos with
+    | row, col -> vertical_horizontal_moves_aux pos
+
+let valid_knight_move (pos : int * int) =
+  if not (valid_piece_pos pos) then failwith "Invalid piece position."
+  else
+    match pos with
+    | row, col ->
+        let possible_moves =
+          [
+            (row + 2, col + 1);
+            (row + 1, col + 2);
+            (row - 1, col + 2);
+            (row - 2, col + 1);
+            (row - 2, col - 1);
+            (row - 1, col - 2);
+            (row + 1, col - 2);
+            (row + 2, col - 1);
+          ]
+        in
+        List.filter valid_piece_pos possible_moves
+
+let diagonal_moves_aux (pos : int * int) : (int * int) list =
+  match pos with
+  | row, col ->
+      let moves_diagonal_up_right =
+        List.init
+          (min (7 - row) (7 - col))
+          (fun i -> (row + i + 1, col + i + 1))
+      in
+      let moves_diagonal_up_left =
+        List.init (min (7 - row) col) (fun i -> (row + i + 1, col - i - 1))
+      in
+      let moves_diagonal_down_right =
+        List.init (min row (7 - col)) (fun i -> (row - i - 1, col + i + 1))
+      in
+      let moves_diagonal_down_left =
+        List.init (min row col) (fun i -> (row - i - 1, col - i - 1))
+      in
+      moves_diagonal_up_right @ moves_diagonal_up_left
+      @ moves_diagonal_down_right @ moves_diagonal_down_left
+
+let valid_bishop_move (pos : int * int) =
+  if not (valid_piece_pos pos) then failwith "Invalid piece position."
+  else
+    match pos with
+    | row, col -> diagonal_moves_aux pos
+
+let valid_queen_move (pos : int * int) =
+  if not (valid_piece_pos pos) then failwith "Invalid piece position."
+  else
+    match pos with
+    | row, col -> vertical_horizontal_moves_aux pos @ diagonal_moves_aux pos
+
+let valid_king_move (pos : int * int) =
+  if not (valid_piece_pos pos) then failwith "Invalid piece position."
+  else
+    match pos with
+    | row, col ->
+        let possible_moves =
+          [
+            (row + 1, col);
+            (row + 1, col + 1);
+            (row, col + 1);
+            (row - 1, col + 1);
+            (row - 1, col);
+            (row - 1, col - 1);
+            (row, col - 1);
+            (row + 1, col - 1);
+          ]
+        in
+        List.filter valid_piece_pos possible_moves
+
+let piece_to_string (piece : piece option) : string =
   match piece with
-  | Some { piece_type = Pawn; color = White } -> 1
-  | Some { piece_type = Knight; color = White } -> 2
-  | Some { piece_type = Bishop; color = White } -> 3
-  | Some { piece_type = Rook; color = White } -> 4
-  | Some { piece_type = Queen; color = White } -> 5
-  | Some { piece_type = King; color = White } -> 6
-  | Some { piece_type = Pawn; color = Black } -> -1
-  | Some { piece_type = Knight; color = Black } -> -2
-  | Some { piece_type = Bishop; color = Black } -> -3
-  | Some { piece_type = Rook; color = Black } -> -4
-  | Some { piece_type = Queen; color = Black } -> -5
-  | Some { piece_type = King; color = Black } -> -6
-  | None -> 0
+  | Some { piece_type = Pawn; color = White } -> "P"
+  | Some { piece_type = Knight; color = White } -> "N"
+  | Some { piece_type = Bishop; color = White } -> "B"
+  | Some { piece_type = Rook; color = White } -> "R"
+  | Some { piece_type = Queen; color = White } -> "Q"
+  | Some { piece_type = King; color = White } -> "K"
+  | Some { piece_type = Pawn; color = Black } -> "P"
+  | Some { piece_type = Knight; color = Black } -> "N"
+  | Some { piece_type = Bishop; color = Black } -> "B"
+  | Some { piece_type = Rook; color = Black } -> "R"
+  | Some { piece_type = Queen; color = Black } -> "Q"
+  | Some { piece_type = King; color = Black } -> "K"
+  | None -> ""
+
+let valid_piece_move (p : piece) (pos : int * int) =
+  if not (valid_piece_pos pos) then failwith "Invalid piece position."
+  else
+    match p.piece_type with
+    | Pawn -> valid_pawn_move p pos
+    | Rook -> valid_rook_move pos
+    | Knight -> valid_knight_move pos
+    | Bishop -> valid_bishop_move pos
+    | Queen -> valid_queen_move pos
+    | King -> valid_king_move pos
