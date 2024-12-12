@@ -1,6 +1,5 @@
 open Pieces
 open Board
-open Pieces
 
 type game_state = {
   board : board;
@@ -20,32 +19,42 @@ let init_game () : game_state =
 let game_over game_state = game_state.game_over
 let is_whites_move game_state = game_state.is_whites_move
 
-let print_board (game_state : game_state) : unit =
-  let board_str = ref "" in
-  for row = 7 downto 0 do
-    board_str := !board_str ^ string_of_int row ^ "| ";
-    for col = 0 to 7 do
-      let piece_value =
-        piece_to_int (get_piece_at game_state.board (row, col))
-      in
-      board_str := !board_str ^ Printf.sprintf "%3d" piece_value
-    done;
-    board_str := !board_str ^ "\n"
-  done;
-  board_str := !board_str ^ "   -------------------------\n";
-  board_str := !board_str ^ "     0  1  2  3  4  5  6  7\n";
-  print_endline !board_str
+let current_player_color game_state =
+  if game_state.is_whites_move then "White" else "Black"
+
+let print_board (game_state : game_state) : unit = print_board game_state.board
+
+let update_game_status (gs : game_state) : game_state =
+  let color = current_player_color gs in
+  let in_check = is_in_check gs.board color in
+  let game_over = is_checkmate gs.board color || is_stalemate gs.board color in
+  { gs with in_check; game_over }
 
 let move (game_state : game_state) (start_row, start_col) (end_row, end_col) :
     game_state =
   let piece_opt = get_piece_at game_state.board (start_row, start_col) in
   match piece_opt with
-  | Some piece -> (
-      match get_piece_type piece with
-      | "Pawn" ->
-          let new_board =
-            move_piece game_state.board (start_row, start_col) (end_row, end_col)
-          in
-          { game_state with board = new_board }
-      | _ -> failwith "Error: Only pawns can be moved so far.")
-  | None -> failwith "Error: No piece at the starting position."
+  | None -> failwith "No piece at that square."
+  | Some piece ->
+      let piece_color = get_color piece in
+      if
+        (piece_color = "White" && not (is_whites_move game_state))
+        || (piece_color = "Black" && is_whites_move game_state)
+      then failwith "It's not your turn to move."
+      else if
+        not
+          (is_valid_move game_state.board (start_row, start_col)
+             (end_row, end_col))
+      then failwith "Invalid move for that piece."
+      else
+        let new_board =
+          move_piece game_state.board (start_row, start_col) (end_row, end_col)
+        in
+        let new_game_state =
+          {
+            game_state with
+            board = new_board;
+            is_whites_move = not game_state.is_whites_move;
+          }
+        in
+        update_game_status new_game_state
