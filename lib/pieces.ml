@@ -1,4 +1,13 @@
-(** The type of a piece .*)
+(* AF: - A "piece_type" value (King, Queen, Rook, Bishop, Knight, or Pawn)
+   represents the specific rank of the chess piece. A "color" value (White (Red)
+   or Black (Blue)) represents which side the piece belongs to. A "piece" record
+   combines these two to represent a single chess piece. For example, {
+   piece_type = Pawn; color = White } represents a white pawn.
+
+   RI: "piece_type" must be one of the six valid constructors (King, Queen,
+   Rook, Bishop, Knight, or Pawn). "color" must be either White or Black. No
+   additional constraints since any combination of [piece_type] and [color]
+   forms a valid piece. *)
 type piece_type =
   | King
   | Queen
@@ -7,12 +16,10 @@ type piece_type =
   | Knight
   | Pawn
 
-(* The color of a piece.*)
 type color =
   | White
   | Black
 
-(* A piece has both a type and a color.*)
 type piece = {
   piece_type : piece_type;
   color : color;
