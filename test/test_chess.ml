@@ -2,8 +2,8 @@ open OUnit2
 open Chess
 
 (** Testing for pieces compilation unit. *)
-let white_king = Chess.Pieces.create_piece "King" "White"
 
+let white_king = Chess.Pieces.create_piece "King" "White"
 let black_king = Chess.Pieces.create_piece "King" "Black"
 let white_queen = Chess.Pieces.create_piece "Queen" "White"
 let black_queen = Chess.Pieces.create_piece "Queen" "Black"
@@ -178,20 +178,16 @@ let queen_movement_tests =
       compare_pos_lists expected (Chess.Pieces.valid_queen_move (3, 3)) );
     ( "test_queen_corner_moves" >:: fun _ ->
       let expected =
-        (* Rook-like moves *)
         [ (1, 0); (2, 0); (3, 0); (4, 0); (5, 0); (6, 0); (7, 0) ]
         @ [ (0, 1); (0, 2); (0, 3); (0, 4); (0, 5); (0, 6); (0, 7) ]
-        @ (* Bishop-like moves *)
-        [ (1, 1); (2, 2); (3, 3); (4, 4); (5, 5); (6, 6); (7, 7) ]
+        @ [ (1, 1); (2, 2); (3, 3); (4, 4); (5, 5); (6, 6); (7, 7) ]
       in
       compare_pos_lists expected (Chess.Pieces.valid_queen_move (0, 0)) );
     ( "test_queen_edge_moves" >:: fun _ ->
       let expected =
-        (* Rook-like moves *)
         [ (0, 0); (1, 0); (2, 0); (3, 0); (4, 0); (5, 0); (6, 0) ]
         @ [ (7, 1); (7, 2); (7, 3); (7, 4); (7, 5); (7, 6); (7, 7) ]
-        @ (* Bishop-like moves *)
-        [ (6, 1); (5, 2); (4, 3); (3, 4); (2, 5); (1, 6); (0, 7) ]
+        @ [ (6, 1); (5, 2); (4, 3); (3, 4); (2, 5); (1, 6); (0, 7) ]
       in
       compare_pos_lists expected (Chess.Pieces.valid_queen_move (7, 0)) );
   ]
@@ -215,7 +211,6 @@ let king_movement_tests =
     ( "test_king_corner_moves_bottom_left" >:: fun _ ->
       let expected = [ (6, 0); (6, 1); (7, 1) ] in
       compare_pos_lists expected (Chess.Pieces.valid_king_move (7, 0)) );
-    (* Test edge position *)
     ( "test_king_edge_moves" >:: fun _ ->
       let expected = [ (4, 0); (4, 1); (3, 1); (2, 1); (2, 0) ] in
       compare_pos_lists expected (Chess.Pieces.valid_king_move (3, 0)) );
@@ -241,9 +236,9 @@ let piece_string_tests =
       assert_equal "" (Chess.Pieces.piece_to_string None) );
   ]
 
+(** End testing for pieces compilation unit. *)
 let invalid_position_tests =
   [
-    (* Test invalid positions for each piece move function *)
     ( "test_invalid_piece_moves" >:: fun _ ->
       List.iter
         (fun pos ->
@@ -261,8 +256,6 @@ let invalid_position_tests =
               Chess.Pieces.valid_piece_move white_king pos))
         [ (-1, 0); (8, 0); (0, -1); (0, 8); (8, 8); (-1, -1) ] );
   ]
-
-(** End testing for pieces compilation unit. *)
 
 (* Equality function for pieces *)
 
