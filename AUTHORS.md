@@ -1,1 +1,1 @@
-Authors: 
+Authors: Dylan Dehnert, Aneesh Naresh, and Benjamin Shvartsman

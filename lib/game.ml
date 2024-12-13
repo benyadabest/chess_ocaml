@@ -11,6 +11,7 @@ open Board
    must accurately reflect the player's turn. "in_check" must be true if and
    only if the current player's king is in check. "game_over" must be true if
    the position is in a checkmate or stalemate state. *)
+   
 type game_state = {
   board : board;
   is_whites_move : bool;

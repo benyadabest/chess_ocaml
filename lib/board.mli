@@ -17,7 +17,7 @@ val is_valid_position : int * int -> bool
 (** Checks if the given position is valid on the board. *)
 
 val algebraic_to_indices : string -> int * int
-(** Converts algebraic notation (e.g., "e4") to array indices. *)
+(** Converts algebraic notation to array indices. *)
 
 val indices_to_algebraic : int * int -> string
 (** Converts array indices to algebraic notation. *)
@@ -44,3 +44,8 @@ val is_checkmate : board -> string -> bool
 val is_stalemate : board -> string -> bool
 (** [is_stalemate board color] returns true if the player of the given color
       is in stalemate (not in check but has no legal moves). *)
+
+val place_piece : board -> string -> Pieces.piece -> unit
+(** [place_piece board position piece] places [piece] at the given [position] on the [board].
+    The [position] is specified in algebraic notation. Raises [Invalid_argument] if the [position] is invalid. *)
+

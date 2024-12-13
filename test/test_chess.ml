@@ -1,5 +1,7 @@
 open OUnit2
 open Chess
+open Chess.Board
+open Chess.Pieces
 
 (** Testing for pieces compilation unit. *)
 
@@ -237,139 +239,207 @@ let piece_string_tests =
   ]
 
 (** End testing for pieces compilation unit. *)
-let invalid_position_tests =
-  [
-    ( "test_invalid_piece_moves" >:: fun _ ->
-      List.iter
-        (fun pos ->
-          assert_raises (Failure "Invalid piece position.") (fun () ->
-              Chess.Pieces.valid_piece_move white_pawn pos);
-          assert_raises (Failure "Invalid piece position.") (fun () ->
-              Chess.Pieces.valid_piece_move white_rook pos);
-          assert_raises (Failure "Invalid piece position.") (fun () ->
-              Chess.Pieces.valid_piece_move white_knight pos);
-          assert_raises (Failure "Invalid piece position.") (fun () ->
-              Chess.Pieces.valid_piece_move white_bishop pos);
-          assert_raises (Failure "Invalid piece position.") (fun () ->
-              Chess.Pieces.valid_piece_move white_queen pos);
-          assert_raises (Failure "Invalid piece position.") (fun () ->
-              Chess.Pieces.valid_piece_move white_king pos))
-        [ (-1, 0); (8, 0); (0, -1); (0, 8); (8, 8); (-1, -1) ] );
-  ]
 
-(* Equality function for pieces *)
+(** Testing for board compilation unit. *)
 
 let pieces_equal p1 p2 =
   match (p1, p2) with
   | None, None -> true
-  | Some piece1, Some piece2 ->
-      Pieces.get_piece_type piece1 = Pieces.get_piece_type piece2
-      && Pieces.get_color piece1 = Pieces.get_color piece2
+  | Some p1, Some p2 -> 
+      Pieces.get_piece_type p1 = Pieces.get_piece_type p2 && 
+      Pieces.get_color p1 = Pieces.get_color p2
   | _ -> false
-
-(* Print the board for debugging *)
-let print_board_debug board =
-  Board.print_board board;
-  print_endline ""
-
-(* Debug wrapper for is_valid_move *)
-let debug_is_valid_move board start_pos end_pos =
-  let result = Board.is_valid_move board start_pos end_pos in
-  Printf.printf "Validating move from %s to %s: %b\n"
-    (Board.indices_to_algebraic start_pos)
-    (Board.indices_to_algebraic end_pos)
-    result;
-  result
-
-(* Test the initialization of the chessboard *)
-let test_init_board _ =
+ 
+ let test_init_board _ =
   let board = Board.init_board () in
-  (* Check major pieces *)
-  assert_bool "Black Rook at (0, 0)"
-    (pieces_equal
-       (Board.get_piece_at board (0, 0))
-       (Some (Pieces.create_piece "Rook" "Black")));
-  assert_bool "Black Knight at (0, 1)"
-    (pieces_equal
-       (Board.get_piece_at board (0, 1))
-       (Some (Pieces.create_piece "Knight" "Black")));
-  assert_bool "Black King at (0, 4)"
-    (pieces_equal
-       (Board.get_piece_at board (0, 4))
-       (Some (Pieces.create_piece "King" "Black")));
-  assert_bool "White Pawn at (6, 0)"
-    (pieces_equal
-       (Board.get_piece_at board (6, 0))
-       (Some (Pieces.create_piece "Pawn" "White")));
-  assert_bool "White King at (7, 4)"
-    (pieces_equal
-       (Board.get_piece_at board (7, 4))
-       (Some (Pieces.create_piece "King" "White")));
-  (* Ensure empty squares are indeed empty *)
-  assert_bool "Empty square at (4, 4)"
-    (pieces_equal (Board.get_piece_at board (4, 4)) None);
-  assert_bool "Empty square at (5, 5)"
-    (pieces_equal (Board.get_piece_at board (5, 5)) None)
-
-(* Test valid position checking *)
-let test_valid_position _ =
-  assert_bool "Position (0, 0) should be valid" (Board.is_valid_position (0, 0));
-  assert_bool "Position (7, 7) should be valid" (Board.is_valid_position (7, 7));
-  assert_bool "Position (-1, 0) should be invalid"
-    (not (Board.is_valid_position (-1, 0)));
-  assert_bool "Position (8, 0) should be invalid"
-    (not (Board.is_valid_position (8, 0)))
-
-(* Test move validity *)
-let test_valid_move _ =
+  List.iter (fun (row, col, piece_type, color) ->
+    let expected_piece = Some (Pieces.create_piece piece_type color) in
+    assert_bool
+      (Printf.sprintf "%s %s at (%d, %d)" color piece_type row col)
+      (pieces_equal (Board.get_piece_at board (row, col)) expected_piece)
+  ) [
+    (0, 0, "Rook", "Black"); (0, 1, "Knight", "Black"); (0, 2, "Bishop", "Black");
+    (0, 3, "Queen", "Black"); (0, 4, "King", "Black"); (0, 5, "Bishop", "Black");
+    (0, 6, "Knight", "Black"); (0, 7, "Rook", "Black"); (7, 0, "Rook", "White"); 
+    (7, 1, "Knight", "White"); (7, 2, "Bishop", "White"); (7, 3, "Queen", "White"); 
+    (7, 4, "King", "White"); (7, 5, "Bishop", "White"); (7, 6, "Knight", "White"); 
+    (7, 7, "Rook", "White")
+  ];
+  for col = 0 to 7 do
+    assert_bool (Printf.sprintf "Black Pawn at (1, %d)" col)
+      (pieces_equal (Board.get_piece_at board (1, col))
+        (Some (Pieces.create_piece "Pawn" "Black")));
+    assert_bool (Printf.sprintf "White Pawn at (6, %d)" col)
+      (pieces_equal (Board.get_piece_at board (6, col))
+        (Some (Pieces.create_piece "Pawn" "White")));
+  done;
+  List.iter (fun (row, col) ->
+    assert_bool
+      (Printf.sprintf "Empty square at (%d, %d)" row col)
+      (pieces_equal (Board.get_piece_at board (row, col)) None)
+  ) [
+    (4, 4); (5, 5); (3, 3); (2, 0); (2, 7); (5, 0); (5, 7)
+  ]
+ 
+ let test_get_piece_at _ =
   let board = Board.init_board () in
-  print_endline "Initial Board State:";
-  print_board_debug board;
+  List.iter (fun (row, col, expected) ->
+    assert_bool
+      (Printf.sprintf "Position (%d, %d)" row col)
+      (pieces_equal (Board.get_piece_at board (row, col)) expected)
+  ) [
+    (0, 0, Some (Pieces.create_piece "Rook" "Black"));
+    (7, 4, Some (Pieces.create_piece "King" "White"));
+    (6, 0, Some (Pieces.create_piece "Pawn" "White"));
+    (3, 3, None);
+    (-1, 0, None);
+    (8, 0, None);
+    (0, 8, None);
+    (0, -1, None)
+  ]
+ 
+ let test_move_piece _ =
+  let board = Board.init_board () in
+  List.iter (fun (start_pos, end_pos, should_succeed) ->
+    match should_succeed with
+    | true -> 
+        let new_board = Board.move_piece board start_pos end_pos in
+        let piece = Board.get_piece_at board start_pos in
+        assert_bool "Start position is empty"
+          (pieces_equal (Board.get_piece_at new_board start_pos) None);
+        assert_bool "End position has moved piece"
+          (pieces_equal (Board.get_piece_at new_board end_pos) piece)
+    | false ->
+        assert_raises (Failure "Invalid move")
+          (fun () -> Board.move_piece board start_pos end_pos)
+  ) [
+    ((6, 4), (4, 4), true);
+    ((7, 1), (5, 2), true);
+    ((6, 0), (5, 0), true);
+    ((7, 0), (6, 0), false);
+    ((0, 0), (0, 2), false);
+    ((3, 3), (4, 4), false);
+    ((8, 8), (7, 7), false)
+  ]
+ 
+ let test_valid_position _ =
+  List.iter (fun (pos, expected) ->
+    assert_equal expected (Board.is_valid_position pos)
+      ~msg:(Printf.sprintf "Position (%d, %d)" (fst pos) (snd pos))
+  ) [
+    ((0, 0), true); ((7, 7), true);
+    ((3, 4), true); ((0, 7), true);
+    ((-1, 0), false); ((8, 0), false);
+    ((0, -1), false); ((0, 8), false);
+    ((8, 8), false); ((-1, -1), false)
+  ]
+ 
+  let test_algebraic_conversion _ =
+    List.iter (fun (alg, indices) ->
+      assert_equal indices (Board.algebraic_to_indices alg)
+        ~msg:(Printf.sprintf "Converting %s" alg);
+      assert_equal alg (Board.indices_to_algebraic indices)
+        ~msg:(Printf.sprintf "Converting (%d, %d)" (fst indices) (snd indices))
+    ) [
+      ("a1", (7, 0)); ("h1", (7, 7));
+      ("a8", (0, 0)); ("h8", (0, 7));
+      ("e4", (4, 4)); ("d6", (2, 3))
+    ];
+    assert_raises (Failure "Invalid notation format")
+      (fun () -> Board.algebraic_to_indices "");
+    assert_raises (Failure "Invalid notation format")
+      (fun () -> Board.algebraic_to_indices "a");
+    assert_raises (Failure "Invalid notation format")
+      (fun () -> Board.algebraic_to_indices "1");
+    assert_raises (Failure "Invalid notation format")
+      (fun () -> Board.algebraic_to_indices "a11");
+    assert_raises (Failure "Invalid position")
+      (fun () -> Board.algebraic_to_indices "i1");
+    assert_raises (Failure "Invalid position")
+      (fun () -> Board.algebraic_to_indices "a9");
+    assert_raises (Failure "Invalid position")
+      (fun () -> Board.algebraic_to_indices "a0")
+ 
+ let test_move_piece_algebraic _ =
+  let board = Board.init_board () in
+  List.iter (fun (start_pos, end_pos, should_succeed) ->
+    match should_succeed with
+    | true -> 
+        let new_board = Board.move_piece_algebraic board start_pos end_pos in
+        let start_indices = Board.algebraic_to_indices start_pos in
+        let end_indices = Board.algebraic_to_indices end_pos in
+        assert_bool "Piece moved successfully"
+          (pieces_equal 
+            (Board.get_piece_at board start_indices)
+            (Board.get_piece_at new_board end_indices))
+    | false ->
+        assert_raises (Failure "Invalid move")
+          (fun () -> Board.move_piece_algebraic board start_pos end_pos)
+  ) [
+    ("e2", "e4", true);
+    ("b1", "c3", true);
+    ("a2", "a3", true);
+    ("e1", "e3", false);
+    ("h1", "h3", false)
+  ]
+ 
+ let test_check _ =
+  let board = Board.init_board () in
+  assert_equal false (Board.is_check board "White");
+  assert_equal false (Board.is_check board "Black");
+  let board = Board.move_piece_algebraic board "f2" "f3" in
+  let board = Board.move_piece_algebraic board "e7" "e6" in
+  let board = Board.move_piece_algebraic board "g2" "g4" in
+  let board = Board.move_piece_algebraic board "d8" "h4" in
+  assert_equal true (Board.is_check board "White")
+ 
+ let test_checkmate _ =
+  let board = Board.init_board () in
+  assert_equal false (Board.is_checkmate board "White");
+  assert_equal false (Board.is_checkmate board "Black");
+  let board = Board.move_piece_algebraic board "f2" "f3" in
+  let board = Board.move_piece_algebraic board "e7" "e6" in
+  let board = Board.move_piece_algebraic board "g2" "g4" in
+  let board = Board.move_piece_algebraic board "d8" "h4" in
+  assert_equal true (Board.is_checkmate board "White")
+ 
+  let test_stalemate _ =
+    let board = Board.init_board () in
+    Array.iter (fun row -> Array.fill row 0 8 None) board;
+    Board.place_piece board "a8" (Pieces.create_piece "King" "Black");
+    Board.place_piece board "b6" (Pieces.create_piece "Queen" "White");
+    Board.place_piece board "c7" (Pieces.create_piece "King" "White");
+    assert_equal true (Board.is_stalemate board "Black");
+    assert_equal false (Board.is_checkmate board "Black");
+    assert_equal false (Board.is_stalemate board "White")
+ 
+ let test_place_piece _ =
+  let board = Board.init_board () in
+  let piece = Pieces.create_piece "Queen" "White" in
+  Board.place_piece board "e4" piece;
+  assert_bool "Piece placed correctly"
+    (pieces_equal (Board.get_piece_at board (4, 4)) (Some piece));
+  assert_raises (Failure "Invalid position")
+    (fun () -> Board.place_piece board "i1" piece);
+  assert_raises (Failure "Invalid position")
+    (fun () -> Board.place_piece board "a9" piece)
 
-  (* White Pawn movement *)
-  assert_bool "White pawn can move forward one step"
-    (debug_is_valid_move board (6, 0) (5, 0));
-  assert_bool "White pawn can move forward two steps initially"
-    (debug_is_valid_move board (6, 0) (4, 0));
-  assert_bool "White pawn cannot move forward three steps"
-    (not (debug_is_valid_move board (6, 0) (3, 0)));
+(** End testing for board compilation unit. *)
 
-  (* Black Pawn movement *)
-  assert_bool "Black pawn can move forward one step"
-    (debug_is_valid_move board (1, 0) (2, 0));
-  assert_bool "Black pawn can move forward two steps initially"
-    (debug_is_valid_move board (1, 0) (3, 0));
-  assert_bool "Black pawn cannot move forward three steps"
-    (not (debug_is_valid_move board (1, 0) (4, 0)));
-
-  (* Invalid moves *)
-  assert_bool "Pawn cannot move sideways"
-    (not (debug_is_valid_move board (6, 0) (6, 1)));
-  assert_bool "Pawn cannot move diagonally without capture"
-    (not (debug_is_valid_move board (6, 0) (5, 1)));
-
-  (* Capture *)
-  let board_with_capture = Board.move_piece board (1, 1) (5, 1) in
-  print_endline "Board State After Move (1,1) to (5,1):";
-  print_board_debug board_with_capture;
-  assert_bool "White pawn can capture diagonally"
-    (debug_is_valid_move board_with_capture (6, 0) (5, 1))
-
-(* Test algebraic conversions *)
-let test_algebraic_conversion _ =
-  assert_equal (0, 0) (Board.algebraic_to_indices "a8");
-  assert_equal "a8" (Board.indices_to_algebraic (0, 0));
-  assert_equal (7, 7) (Board.algebraic_to_indices "h1");
-  assert_equal "h1" (Board.indices_to_algebraic (7, 7));
-  assert_raises (Failure "Invalid position") (fun () ->
-      Board.algebraic_to_indices "i1")
 
 let suite =
   "Chess Tests"
   >::: [
-         "test_init_board" >:: test_init_board;
-         "test_valid_position" >:: test_valid_position;
-         "test_algebraic_conversion" >:: test_algebraic_conversion;
+        "test_init_board" >:: test_init_board;
+        "test_get_piece_at" >:: test_get_piece_at;
+        "test_move_piece" >:: test_move_piece;
+        "test_valid_position" >:: test_valid_position;
+        "test_algebraic_conversion" >:: test_algebraic_conversion;
+        "test_move_piece_algebraic" >:: test_move_piece_algebraic;
+        "test_check" >:: test_check;
+        "test_checkmate" >:: test_checkmate;
+        "test_stalemate" >:: test_stalemate;
+        "test_place_piece" >:: test_place_piece;
        ]
        @ List.flatten
            [
@@ -382,7 +452,6 @@ let suite =
              queen_movement_tests;
              king_movement_tests;
              piece_string_tests;
-             invalid_position_tests;
            ]
 
 let () = run_test_tt_main suite
