@@ -1,6 +1,16 @@
 open Pieces
 open Board
 
+(* AF: A "game_state" represents the current state of the chess game. "board"
+   represents the current position of pieces on the chessboard. "is_whites_move"
+   indicates whether it is the White player's turn to move. "in_check" indicates
+   whether the current player is in check. "game_over" indicates whether the
+   game has ended from checkmate or stalemate.
+
+   RI: The "board" must satisfy the RI defined in board.ml. "is_whites_move"
+   must accurately reflect the player's turn. "in_check" must be true if and
+   only if the current player's king is in check. "game_over" must be true if
+   the position is in a checkmate or stalemate state. *)
 type game_state = {
   board : board;
   is_whites_move : bool;
